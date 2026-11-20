@@ -34,3 +34,19 @@ Mit einem kostenlosen Apple-Account (Personal Team) läuft die Installation 7 Ta
 1. iPhone sperren, quer hinlegen, ans Ladegerät.
 2. Nach links wischen bis zur Ansicht mit zwei Widget-Stapeln.
 3. Links „Klappuhr – Stunden“, rechts „Klappuhr – Minuten“ hinzufügen.
+
+## Automatische Erneuerung (kostenloser Account)
+
+`scripts/klappuhr-renew.sh` hält die 7-Tage-Signatur am Leben. Ein launchd-Job startet es stündlich.
+Bleiben weniger als 30 Stunden Gültigkeit, räumt es die alten Profile weg, baut die App mit frischem Profil
+(`xcodebuild -allowProvisioningUpdates`) und installiert sie per WLAN (`xcrun devicectl`).
+Bei Erfolg und bei Fehlern kommt eine macOS-Mitteilung, Fehler höchstens alle 6 Stunden.
+
+```sh
+scripts/install-launchd.sh            # Job einrichten
+scripts/klappuhr-renew.sh --force     # sofort erneuern
+tail ~/Library/Logs/Klappuhr/renew.log
+```
+
+Vorher `scripts/config.local.example` nach `scripts/config.local` kopieren und die Geräte-ID eintragen. Die Bundle-ID steht oben in `scripts/klappuhr-renew.sh`.
+Voraussetzungen: Mac eingeschaltet und angemeldet, iPhone im selben WLAN, Apple-Account in Xcode angemeldet.
