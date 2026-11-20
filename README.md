@@ -1,4 +1,4 @@
-# Klappuhr – Flip Clock für den iOS-StandBy-Modus
+# Klappuhr – Flip Clock für den iOS-StandBy-Modus from Sarah with Claude 💖
 
 Eine Klappuhr im Fliqlo-Stil als WidgetKit-Widgets für den StandBy-Modus des iPhones
 (quer, gesperrt, beim Laden).
