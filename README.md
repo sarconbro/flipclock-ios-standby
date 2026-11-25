@@ -28,7 +28,6 @@
 - **Classic look:** black background, dark grey rounded cards, large vertically stretched digits, a thin hinge line through the middle, 24-hour format.
 - **Smooth digit changes:** hours and minutes roll over with `contentTransition(.numericText)`.
 - **Night mode:** in the dark, StandBy tints the clock red. The widget adapts its brightness levels so it stays readable.
-- **Localized:** English and German.
 - **Companion app:** a simple screen with a live preview and setup instructions.
 
 ## Requirements
