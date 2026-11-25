@@ -1,8 +1,8 @@
 #!/bin/zsh
-# Richtet den launchd-Job ein, der scripts/klappuhr-renew.sh stündlich startet.
-# Erneut ausführen ist unproblematisch (ersetzt den alten Job).
+# Installs the launchd job that runs scripts/klappuhr-renew.sh every hour.
+# Safe to run again (replaces the existing job).
 #
-# Entfernen:
+# To remove it:
 #   launchctl bootout gui/$(id -u)/de.klappuhr.renew
 #   rm ~/Library/LaunchAgents/de.klappuhr.renew.plist
 
@@ -27,7 +27,7 @@ cat > "$PLIST" <<EOF
         <string>/bin/zsh</string>
         <string>$SCRIPT</string>
     </array>
-    <!-- stündlich prüfen; verpasste Läufe (Mac im Ruhezustand) holt launchd beim Aufwachen nach -->
+    <!-- check hourly; runs missed while the Mac was asleep are caught up on wake -->
     <key>StartInterval</key>
     <integer>3600</integer>
     <key>RunAtLoad</key>
@@ -44,4 +44,4 @@ EOF
 
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
-echo "launchd-Job $LABEL eingerichtet: $PLIST"
+echo "launchd job $LABEL installed: $PLIST"

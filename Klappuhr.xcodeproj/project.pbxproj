@@ -173,9 +173,10 @@
 				};
 			};
 			buildConfigurationList = AA0000000000000000000070 /* Build configuration list for PBXProject "Klappuhr" */;
-			developmentRegion = de;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				en,
 				de,
 				Base,
 			);

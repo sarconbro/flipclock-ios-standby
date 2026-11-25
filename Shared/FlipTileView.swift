@@ -1,35 +1,35 @@
 import SwiftUI
 
-/// Eine einzelne Klappkarte im Fliqlo-Stil:
-/// dunkelgraue, abgerundete, quadratische Kachel, große helle Ziffern
-/// (in die Höhe gestreckt wie klassische Klappzahlen), feine Trennlinie in der Mitte.
+/// A single flip-clock card in the style of Fliqlo:
+/// a dark grey, rounded, square tile with large light digits
+/// (stretched vertically like classic flip-clock numerals) and a thin hinge line in the middle.
 ///
-/// Diese Datei gehört zu BEIDEN Targets (App und Widget), damit die Vorschau
-/// in der App exakt so aussieht wie das Widget.
+/// This file belongs to BOTH targets (app and widget extension), so the preview
+/// inside the app looks exactly like the widget.
 struct FlipTileView: View {
 
-    /// Darstellungsart.
-    /// - standard: normale Farben (Homescreen, StandBy tagsüber)
-    /// - vibrant:  das System färbt selbst ein (StandBy-Nachtmodus = rot,
-    ///             getönter Homescreen). Dann zählt nur die Helligkeit.
+    /// Rendering style.
+    /// - standard: regular colours (Home Screen, StandBy during the day)
+    /// - vibrant:  the system tints the widget itself (StandBy night mode = red,
+    ///             tinted Home Screen). Only luminance matters in this mode.
     enum Style {
         case standard
         case vibrant
     }
 
-    /// Was auf der Kachel steht.
+    /// What the tile shows.
     enum Content {
-        /// Fester Wert, z. B. 7 → „07“. Wechselt mit Roll-Animation.
+        /// A fixed value, e.g. 7 → "07". Changes with a rolling animation.
         case value(Int)
-        /// Laufende Sekunden, die iOS selbst jede Sekunde weiterzählt.
+        /// Live seconds that iOS itself advances every second.
         case liveSeconds(Date)
     }
 
-    // MARK: Stellschrauben fürs Aussehen
+    // MARK: Appearance tuning
 
-    /// Schriftgröße im Verhältnis zur Kachelhöhe.
+    /// Font size relative to the tile height.
     static let fontScale: CGFloat = 0.69
-    /// Wie stark die Ziffern in die Höhe gezogen werden (1 = gar nicht).
+    /// How much the digits are stretched vertically (1 = not at all).
     static let digitStretch: CGFloat = 1.36
 
     let content: Content
@@ -50,20 +50,20 @@ struct FlipTileView: View {
             let side = min(geo.size.width, geo.size.height)
 
             ZStack {
-                // 1) Die Kachel
+                // 1) The tile
                 RoundedRectangle(cornerRadius: side * 0.13, style: .continuous)
                     .fill(tileFill)
 
-                // 2) Die Ziffern
+                // 2) The digits
                 digits
                     .font(.system(size: side * Self.fontScale, weight: .heavy))
-                    .monospacedDigit()                 // alle Ziffern gleich breit → kein Wackeln
+                    .monospacedDigit()                 // equal-width digits → no jiggling
                     .foregroundStyle(digitColor)
                     .lineLimit(1)
                     .scaleEffect(x: 1, y: Self.digitStretch)
-                    .offset(y: -side * 0.025)          // etwas höher, wie im Referenzbild
+                    .offset(y: -side * 0.025)          // sit slightly above centre
 
-                // 3) Die feine Trennlinie (der Klappspalt)
+                // 3) The thin hinge line
                 Rectangle()
                     .fill(lineColor)
                     .frame(height: max(1, side * 0.012))
@@ -79,26 +79,26 @@ struct FlipTileView: View {
         switch content {
         case .value(let value):
             Text(String(format: "%02d", value))
-                // Weicher Wechsel: die Ziffern rollen statt hart zu springen.
+                // Smooth change: the digits roll instead of jumping.
                 .contentTransition(.numericText(value: Double(value)))
         case .liveSeconds(let date):
             LiveSeconds(date: date)
         }
     }
 
-    // MARK: - Farben (abgenommen vom Referenz-Screenshot)
+    // MARK: - Colours
 
     private var tileFill: Color {
         switch style {
         case .standard: Color(white: 0.11)
-        case .vibrant:  Color.white.opacity(0.14) // ergibt im Nachtmodus ein sehr dunkles Rot
+        case .vibrant:  Color.white.opacity(0.14) // becomes a very dark red in night mode
         }
     }
 
     private var digitColor: Color {
         switch style {
         case .standard: Color(red: 0.88, green: 0.88, blue: 0.89)
-        case .vibrant:  Color.white            // hellste Stufe → gut lesbar, auch nachts
+        case .vibrant:  Color.white            // brightest level → readable at night
         }
     }
 
@@ -110,26 +110,26 @@ struct FlipTileView: View {
     }
 }
 
-/// Laufende Sekundenanzeige, die iOS selbst jede Sekunde aktualisiert,
-/// auch im Widget, das wir sonst nur einmal pro Minute neu zeichnen dürfen.
+/// Live seconds display that iOS updates every second by itself,
+/// even inside a widget, which we may otherwise only redraw about once a minute.
 ///
-/// Trick: Eine Stoppuhr, die zur vollen Stunde gestartet ist, zeigt „MM:SS“,
-/// also genau die aktuelle Uhrzeit ohne Stunden. Wir lassen davon nur die
-/// letzten zwei Ziffern sichtbar und schneiden den Rest ab.
+/// Trick: a stopwatch started at the top of the hour shows "MM:SS", which is
+/// exactly the current time without the hour. We keep only the last two digits
+/// visible and clip the rest.
 private struct LiveSeconds: View {
     let date: Date
 
     var body: some View {
         let hourStart = Calendar.current.dateInterval(of: .hour, for: date)?.start ?? date
 
-        // Unsichtbares „00“ legt die Breite fest: genau zwei Ziffern.
-        Text("00")
+        // An invisible "00" defines the width: exactly two digits.
+        Text(verbatim: "00")
             .hidden()
             .overlay(alignment: .trailing) {
-                // Im Widget zeichnet iOS die laufende Zeit selbst und reserviert
-                // dafür eine eigene, breitere Fläche (Text darin standardmäßig
-                // linksbündig). Darum: feste, sehr breite Fläche, Text darin
-                // ausdrücklich rechtsbündig. Sichtbar bleibt nur der rechte Rand.
+                // In a widget, iOS draws the running timer itself and reserves its own,
+                // wider frame for it (left-aligned by default). So: give it a fixed,
+                // very wide frame and right-align the text explicitly. Only the right
+                // edge stays visible.
                 Text(timerInterval: hourStart...hourStart.addingTimeInterval(3600),
                      countsDown: false)
                     .multilineTextAlignment(.trailing)
@@ -140,20 +140,20 @@ private struct LiveSeconds: View {
     }
 }
 
-/// Die komplette Uhr-Anordnung wie im Referenzbild:
-/// [Stunden] [Minuten] [kleine Sekunden unten bündig].
-/// Wird in der App-Vorschau benutzt; die Widgets bauen dieselbe Anordnung
-/// auf zwei Hälften verteilt nach.
+/// The complete clock layout:
+/// [hours] [minutes] [small seconds, bottom-aligned].
+/// Used by the in-app preview; the widgets recreate the same layout
+/// split across two halves.
 struct FlipClockRow: View {
     let date: Date
 
-    /// Größe der Sekunden-Kachel im Verhältnis zur großen Kachel.
+    /// Size of the seconds tile relative to a large tile.
     static let secondsScale: CGFloat = 0.3
 
     var body: some View {
         let calendar = Calendar.current
         GeometryReader { geo in
-            // Breite = 2 große Kacheln + 1 kleine + 2 Lücken (je 11 % einer Kachel)
+            // Width = 2 large tiles + 1 small tile + 2 gaps (11 % of a tile each)
             let tile = geo.size.width / (2 + Self.secondsScale + 0.22)
             HStack(alignment: .bottom, spacing: tile * 0.11) {
                 FlipTileView(value: calendar.component(.hour, from: date))

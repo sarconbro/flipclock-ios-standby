@@ -1,6 +1,6 @@
 import WidgetKit
 
-/// Welche Hälfte der Uhr ein Widget zeigt.
+/// Which half of the clock a widget shows.
 enum ClockUnit {
     case hours
     case minutes
@@ -10,16 +10,16 @@ enum ClockUnit {
     }
 }
 
-/// Ein „Eintrag“ in der Zeitleiste: ein Zeitpunkt, ab dem das Widget neu gezeichnet wird.
+/// One entry in the timeline: a point in time from which the widget is redrawn.
 struct ClockEntry: TimelineEntry {
     let date: Date
 }
 
-/// Liefert WidgetKit im Voraus eine Liste von Zeitpunkten.
+/// Hands WidgetKit a list of future points in time.
 ///
-/// Widgets laufen nicht dauerhaft. iOS holt sich stattdessen eine Zeitleiste
-/// und zeichnet das Widget genau zu jedem Eintrag neu. Deshalb legen wir für
-/// jede volle Minute (bzw. Stunde) einen Eintrag an.
+/// Widgets don't run continuously. Instead, iOS asks for a timeline up front
+/// and redraws the widget at each entry. So we create one entry for every
+/// full minute (or hour).
 struct ClockProvider: TimelineProvider {
     let unit: ClockUnit
 
@@ -36,11 +36,11 @@ struct ClockProvider: TimelineProvider {
         let now = Date()
         let component = unit.calendarComponent
 
-        // Beginn der aktuellen Minute/Stunde, z. B. 14:37:00
+        // Start of the current minute/hour, e.g. 14:37:00
         let start = calendar.dateInterval(of: component, for: now)?.start ?? now
 
-        // Minuten: 3 Stunden im Voraus (180 Einträge) → iOS muss nur ca. 8× am Tag nachladen.
-        // Stunden: 24 Einträge → einmal pro Tag nachladen.
+        // Minutes: 3 hours ahead (180 entries) → iOS only reloads about 8 times a day.
+        // Hours: 24 entries → one reload per day.
         let count = unit == .hours ? 24 : 180
 
         var entries = [ClockEntry(date: now)]
@@ -50,7 +50,7 @@ struct ClockProvider: TimelineProvider {
             }
         }
 
-        // .atEnd = nach dem letzten Eintrag holt sich iOS eine neue Zeitleiste.
+        // .atEnd = after the last entry, iOS requests a new timeline.
         completion(Timeline(entries: entries, policy: .atEnd))
     }
 }

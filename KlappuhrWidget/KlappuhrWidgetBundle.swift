@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-/// Einstiegspunkt der Widget-Extension. Hier sind beide Widgets angemeldet.
+/// Entry point of the widget extension. Registers both widgets.
 @main
 struct KlappuhrWidgetBundle: WidgetBundle {
     var body: some Widget {

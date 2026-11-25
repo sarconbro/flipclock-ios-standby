@@ -1,52 +1,99 @@
-# Klappuhr – Flip Clock für den iOS-StandBy-Modus from Sarah with Claude 💖
+<p align="center">
+  <img src="Klappuhr/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="112" alt="Klappuhr app icon">
+</p>
 
-Eine Klappuhr im Fliqlo-Stil als WidgetKit-Widgets für den StandBy-Modus des iPhones
-(quer, gesperrt, beim Laden).
+<h1 align="center">Klappuhr</h1>
 
-- **Stunden-Widget** und **Minuten-Widget** (je `systemSmall`), für die beiden StandBy-Stapel
-- Kleine **Sekunden-Kachel** neben den Minuten, die iOS selbst live weiterzählt
-- 24-h-Format, schwarzer Hintergrund, dunkelgraue Kacheln, gestreckte Ziffern, Trennlinie
-- Weicher Ziffernwechsel per `contentTransition(.numericText)`
-- StandBy-Nachtmodus: iOS färbt die Uhr automatisch rot ein (`widgetRenderingMode`)
-- Die App selbst zeigt nur eine Live-Vorschau und eine Anleitung
+<p align="center">from Sarah with Claude 💖</p>
 
-Voraussetzung: iOS 17 oder neuer, Xcode 26 oder neuer.
+<p align="center">
+  A minimalist flip clock for the iPhone's <b>StandBy</b> mode, built with SwiftUI and WidgetKit.<br>
+  <i>Klappuhr</i> is German for “flip clock”.
+</p>
 
-## Projektaufbau
+<p align="center">
+  <img src="docs/standby-day.png" width="720" alt="Klappuhr in StandBy: hours and minutes as large flip cards, seconds in a small card">
+</p>
 
-| Ordner | Inhalt |
+<p align="center">
+  <img src="docs/standby-night.png" width="720" alt="Klappuhr in StandBy night mode, tinted red">
+</p>
+
+<p align="center"><sub>Rendered previews from the app's own SwiftUI code. Night mode tinting is applied by iOS; the lower image approximates it.</sub></p>
+
+## Features
+
+- **Two StandBy widgets:** one for the hours, one for the minutes. They sit in StandBy's two widget stacks and together form one clock.
+- **Live seconds:** a small seconds card next to the minutes, counted by iOS itself every second.
+- **Classic look:** black background, dark grey rounded cards, large vertically stretched digits, a thin hinge line through the middle, 24-hour format.
+- **Smooth digit changes:** hours and minutes roll over with `contentTransition(.numericText)`.
+- **Night mode:** in the dark, StandBy tints the clock red. The widget adapts its brightness levels so it stays readable.
+- **Localized:** English and German.
+- **Companion app:** a simple screen with a live preview and setup instructions.
+
+## Requirements
+
+- iPhone with iOS 17 or later (StandBy was introduced in iOS 17)
+- Mac with Xcode 26 or later
+- An Apple account. A free one (Personal Team) works; see [Free accounts](#free-accounts-and-the-7-day-limit).
+
+## Build and install
+
+1. Clone the repository and open `Klappuhr.xcodeproj` in Xcode.
+2. Select the project in the navigator. For **both** targets, *Klappuhr* and *KlappuhrWidgetExtension*, open *Signing & Capabilities* and choose your team.
+3. The bundle IDs `de.klappuhr.standby` and `de.klappuhr.standby.widget` may already be taken. If so, change both to your own, e.g. `com.yourname.klappuhr` and `com.yourname.klappuhr.widget`. The widget ID must start with the app ID.
+4. Connect your iPhone, enable *Developer Mode* (Settings → Privacy & Security), select it as the run destination and press ▶︎.
+5. On first install, trust the developer on the iPhone: Settings → General → VPN & Device Management.
+
+## Set up StandBy
+
+1. Settings → StandBy → turn on **StandBy** (and optionally **Night Mode**).
+2. Lock the iPhone, lay it on its side and connect it to a charger.
+3. Swipe left until you see the view with two widget stacks.
+4. Touch and hold the **left** stack → **+** → *Klappuhr* → **Hours**.
+5. Touch and hold the **right** stack → **+** → *Klappuhr* → **Minutes**.
+6. Remove the other widgets from both stacks so nothing rotates away.
+
+## How it works
+
+| Path | Contents |
 |---|---|
-| `Klappuhr/` | App (Infoscreen) |
-| `KlappuhrWidget/` | Widget-Extension: Zeitleiste und die beiden Widgets |
-| `Shared/` | `FlipTileView`: die Kachel, von App und Widget gemeinsam genutzt |
+| [`Shared/FlipTileView.swift`](Shared/FlipTileView.swift) | The flip card view used by both the app and the widgets, plus the live seconds trick |
+| [`KlappuhrWidget/ClockTimeline.swift`](KlappuhrWidget/ClockTimeline.swift) | Timeline provider: one entry per minute (3 h ahead) or per hour (24 h ahead) |
+| [`KlappuhrWidget/ClockWidgets.swift`](KlappuhrWidget/ClockWidgets.swift) | The two widgets and their layout towards the centre of the screen |
+| [`Klappuhr/ContentView.swift`](Klappuhr/ContentView.swift) | The companion app's info screen |
+| [`scripts/`](scripts) | Optional automation for free accounts (see below) |
 
-## Bauen und installieren
+A few details worth knowing:
 
-1. `Klappuhr.xcodeproj` in Xcode öffnen.
-2. Bei beiden Targets (*Klappuhr*, *KlappuhrWidgetExtension*) unter *Signing & Capabilities* das eigene Team wählen.
-   Falls nötig, die Bundle-IDs in eigene ändern.
-3. iPhone wählen und ▶︎ drücken.
+- **Widgets don't run continuously.** WidgetKit renders them at the points in time listed in a timeline. The minutes widget gets one entry per minute for the next three hours, which stays well within iOS's reload budget.
+- **Seconds in a widget.** Widgets can't redraw every second, but iOS can update a `Text(timerInterval:)` itself. A timer started at the top of the hour displays `MM:SS`, i.e. the current minutes and seconds. The view clips it so that only the last two digits (the seconds) remain visible.
+- **StandBy shows only two widgets side by side,** so the seconds card lives inside the minutes widget.
+- **Night mode** is detected with `widgetRenderingMode`: in `.vibrant` mode only luminance matters, so the tile becomes a faint translucent white and the digits full white.
 
-Mit einem kostenlosen Apple-Account (Personal Team) läuft die Installation 7 Tage lang.
+## Free accounts and the 7-day limit
 
-## In StandBy einrichten
+Apps signed with a free Apple account stop launching after 7 days. The `scripts/` folder contains an optional helper that keeps the app installed without you having to think about it:
 
-1. iPhone sperren, quer hinlegen, ans Ladegerät.
-2. Nach links wischen bis zur Ansicht mit zwei Widget-Stapeln.
-3. Links „Klappuhr – Stunden“, rechts „Klappuhr – Minuten“ hinzufügen.
+- [`scripts/klappuhr-renew.sh`](scripts/klappuhr-renew.sh) checks how long the installed provisioning profile is still valid. With less than 30 hours left, it removes the old profiles, rebuilds the app with a fresh 7-day profile (`xcodebuild -allowProvisioningUpdates`) and installs it over Wi-Fi (`xcrun devicectl`).
+- [`scripts/install-launchd.sh`](scripts/install-launchd.sh) installs a launchd job that runs the script every hour. Runs missed while the Mac sleeps are caught up on wake.
+- You get a macOS notification after each renewal and, at most every 6 hours, when something fails.
 
-## Automatische Erneuerung (kostenloser Account)
-
-`scripts/klappuhr-renew.sh` hält die 7-Tage-Signatur am Leben. Ein launchd-Job startet es stündlich.
-Bleiben weniger als 30 Stunden Gültigkeit, räumt es die alten Profile weg, baut die App mit frischem Profil
-(`xcodebuild -allowProvisioningUpdates`) und installiert sie per WLAN (`xcrun devicectl`).
-Bei Erfolg und bei Fehlern kommt eine macOS-Mitteilung, Fehler höchstens alle 6 Stunden.
+Setup:
 
 ```sh
-scripts/install-launchd.sh            # Job einrichten
-scripts/klappuhr-renew.sh --force     # sofort erneuern
-tail ~/Library/Logs/Klappuhr/renew.log
+cp scripts/config.local.example scripts/config.local   # then enter your device ID
+xcrun devicectl list devices                           # shows the device ID
+scripts/install-launchd.sh                             # install the hourly job
+scripts/klappuhr-renew.sh --force                      # optional: renew right now
+tail ~/Library/Logs/Klappuhr/renew.log                 # see what happened
 ```
 
-Vorher `scripts/config.local.example` nach `scripts/config.local` kopieren und die Geräte-ID eintragen. Die Bundle-ID steht oben in `scripts/klappuhr-renew.sh`.
-Voraussetzungen: Mac eingeschaltet und angemeldet, iPhone im selben WLAN, Apple-Account in Xcode angemeldet.
+The Mac has to be on with you logged in, and the iPhone has to be on the same Wi-Fi network. After the iPhone restarts, unlock it once so Xcode can reach it again.
+
+To remove the job:
+
+```sh
+launchctl bootout gui/$(id -u)/de.klappuhr.renew
+rm ~/Library/LaunchAgents/de.klappuhr.renew.plist
+```

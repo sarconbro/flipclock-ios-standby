@@ -1,0 +1,46 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stunden"
+          }
+        }
+      }
+    },
+    "Minutes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minuten"
+          }
+        }
+      }
+    },
+    "Shows the hours. Place it on the left in StandBy.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt die Stunden. Für StandBy links platzieren."
+          }
+        }
+      }
+    },
+    "Shows the minutes and seconds. Place it on the right in StandBy.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt Minuten und Sekunden. Für StandBy rechts platzieren."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
