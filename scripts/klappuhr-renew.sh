@@ -78,11 +78,14 @@ fi
 log "---- Renewal started (installed profile valid until $(fmt $installed_expiry), force=$FORCE)"
 
 # ---------------------------------------------------------------- 2) Remove old profiles
-# So Xcode really fetches a fresh 7-day profile instead of reusing the old one.
+# So Xcode really fetches fresh 7-day profiles (app AND widget) instead of reusing
+# old ones. A fresh profile is valid for about 7 days, so anything valid for less
+# than 6 days is old. (Don't compare with installed-expiry: the app and widget
+# profiles can differ by a second, which once left the widget profile behind.)
 for p in "$PROFILES_DIR"/*.mobileprovision(N); do
     if security cms -D -i "$p" 2>/dev/null | grep -q "$BUNDLE_ID"; then
         exp=$(profile_expiry "$p") || continue
-        if (( exp <= installed_expiry )) || (( FORCE == 1 )); then
+        if (( exp < $(now) + 6 * 86400 )) || (( FORCE == 1 )); then
             log "Removing old profile $(basename "$p") (valid until $(fmt $exp))"
             rm -f "$p"
         fi
@@ -113,11 +116,18 @@ if ! build_app; then
     fi
 fi
 
-new_expiry=$(profile_expiry "$APP/embedded.mobileprovision") || {
-    notify_error "The built app has no provisioning profile."
-    exit 1
-}
-log "Built, new profile valid until $(fmt $new_expiry)"
+# The app is only as valid as its shortest-lived profile: check the app and
+# every extension (the widget) and use the earliest expiry.
+new_expiry=0
+for prof in "$APP/embedded.mobileprovision" "$APP"/PlugIns/*.appex/embedded.mobileprovision(N); do
+    exp=$(profile_expiry "$prof") || {
+        notify_error "No provisioning profile in ${prof:h:t}."
+        exit 1
+    }
+    log "${prof:h:t}: profile valid until $(fmt $exp)"
+    (( new_expiry == 0 || exp < new_expiry )) && new_expiry=$exp
+done
+log "Built, valid until $(fmt $new_expiry)"
 
 if (( FORCE == 0 && new_expiry <= installed_expiry )); then
     # Apple has not issued a new profile (yet). Try again next hour.
